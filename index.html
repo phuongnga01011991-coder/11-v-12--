@@ -1,0 +1,1335 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đại Chiến 11 & 12 - Trừ Đi Một Số | Vương Quốc Phép Trừ</title>
+    <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@700;900&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Nunito', sans-serif;
+            background: #0f172a;
+        }
+
+        #game-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            max-width: 1280px;
+            max-height: 720px;
+            margin: auto;
+            position: absolute;
+            top: 0; bottom: 0; left: 0; right: 0;
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 50%, #1e1b4b 100%);
+            overflow: hidden;
+            box-shadow: 0 30px 70px rgba(0,0,0,0.8);
+            border-radius: 24px;
+            border: 6px solid #60a5fa;
+        }
+
+        #fx-canvas {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        .screen {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.4s ease;
+            z-index: 10;
+            padding: 30px;
+        }
+
+        .screen.hidden {
+            opacity: 0;
+            pointer-events: none;
+            display: none !important;
+        }
+
+        .game-btn {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            border: 4px solid #fef08a;
+            border-bottom: 8px solid #b45309;
+            color: #ffffff;
+            font-family: 'Comfortaa', cursive;
+            font-size: 22px;
+            font-weight: 900;
+            padding: 16px 42px;
+            border-radius: 40px;
+            cursor: pointer;
+            box-shadow: 0 12px 25px rgba(0,0,0,0.35);
+            transition: all 0.1s ease;
+            text-transform: uppercase;
+            text-shadow: 2px 2px 0px rgba(0,0,0,0.3);
+        }
+
+        .game-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.45);
+        }
+
+        .game-btn:active {
+            transform: translateY(4px);
+            border-bottom-width: 4px;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.3);
+        }
+
+        #start-screen {
+            background: radial-gradient(circle at 50% 30%, #60a5fa 0%, #1e40af 60%, #0f172a 100%);
+        }
+
+        .hero-title-box {
+            text-align: center;
+            margin-bottom: 15px;
+            animation: floatTitle 3s ease-in-out infinite alternate;
+        }
+        @keyframes floatTitle {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-8px); }
+        }
+
+        .main-title {
+            font-family: 'Comfortaa', cursive;
+            font-size: clamp(38px, 5.5vw, 56px);
+            font-weight: 900;
+            color: #fde047;
+            text-shadow: 3px 3px 0px #db2777, 6px 6px 0px rgba(0,0,0,0.5);
+            letter-spacing: 1px;
+        }
+
+        .sub-title {
+            font-size: clamp(18px, 2.5vw, 24px);
+            color: #e0f2fe;
+            font-weight: 900;
+            text-shadow: 2px 2px 0px #1e3a8a;
+            margin-top: 6px;
+        }
+
+        .input-group-box {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            margin-bottom: 25px;
+            width: 100%;
+            max-width: 380px;
+        }
+
+        .input-name-box {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 12px 20px;
+            border-radius: 24px;
+            border: 3px solid #93c5fd;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+        }
+
+        .input-name-box input {
+            background: transparent;
+            border: none;
+            color: #1e293b;
+            font-family: 'Nunito', sans-serif;
+            font-size: 18px;
+            font-weight: 800;
+            outline: none;
+            text-align: center;
+            width: 100%;
+        }
+
+        .input-name-box input::placeholder {
+            color: #94a3b8;
+        }
+
+        #map-screen {
+            background: linear-gradient(180deg, #38bdf8 0%, #0284c7 60%, #0369a1 100%);
+        }
+
+        .map-content {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 40px 50px;
+            align-items: center;
+            z-index: 2;
+        }
+
+        .zone-cards-container {
+            display: flex;
+            gap: 25px;
+            justify-content: center;
+            width: 100%;
+            max-width: 1100px;
+        }
+
+        .zone-card {
+            background: rgba(255, 255, 255, 0.96);
+            border-radius: 32px;
+            padding: 28px 22px;
+            flex: 1;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.25);
+            border: 5px solid #ffffff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+
+        .zone-card:hover:not(.locked) {
+            transform: translateY(-10px);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.35);
+            border-color: #fde047;
+        }
+
+        .zone-card.locked {
+            opacity: 0.55;
+            filter: grayscale(0.5);
+            cursor: not-allowed;
+            background: rgba(241, 245, 249, 0.9);
+        }
+
+        .zone-badge {
+            background: #ff6b6b;
+            color: white;
+            padding: 6px 18px;
+            border-radius: 20px;
+            font-weight: 900;
+            font-size: 13px;
+            margin-bottom: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .zone-title {
+            font-family: 'Comfortaa', cursive;
+            font-size: 20px;
+            color: #1e293b;
+            font-weight: 900;
+            margin-bottom: 8px;
+        }
+
+        .zone-desc {
+            font-size: 14px;
+            color: #64748b;
+            font-weight: 800;
+            margin-bottom: 22px;
+            line-height: 1.5;
+        }
+
+        #play-screen {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            justify-content: flex-start;
+            padding: 25px 40px;
+        }
+
+        .battle-layout {
+            position: relative;
+            z-index: 5;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .battle-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 12px 26px;
+            border-radius: 22px;
+            border: 2px solid rgba(255,255,255,0.2);
+        }
+
+        .level-indicator {
+            font-family: 'Comfortaa', cursive;
+            font-size: 18px;
+            color: #fde047;
+            font-weight: 900;
+        }
+
+        .hud-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.15);
+            padding: 8px 18px;
+            border-radius: 30px;
+            color: #fff;
+            font-weight: 900;
+            font-size: 16px;
+            border: 2px solid rgba(255,255,255,0.3);
+        }
+
+        .question-box {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 5px solid #fde047;
+            border-radius: 32px;
+            padding: 22px 40px;
+            text-align: center;
+            align-self: center;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.35);
+            max-width: 650px;
+            width: 100%;
+        }
+
+        .question-text {
+            font-family: 'Comfortaa', cursive;
+            font-size: clamp(42px, 6vw, 56px);
+            color: #1e293b;
+            font-weight: 900;
+            letter-spacing: 2px;
+        }
+
+        .story-prompt {
+            font-size: 15px;
+            color: #0d9488;
+            font-weight: 900;
+            margin-bottom: 8px;
+            background: #ccfbf1;
+            padding: 6px 18px;
+            border-radius: 20px;
+            display: inline-block;
+        }
+
+        .battle-arena {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex: 1;
+            padding: 0 30px;
+        }
+
+        .character-stage {
+            width: 220px;
+            height: 250px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+        }
+
+        .answers-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            max-width: 540px;
+            width: 100%;
+        }
+
+        .answer-stone {
+            background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%);
+            border: 4px solid #93c5fd;
+            border-bottom: 8px solid #2563eb;
+            border-radius: 26px;
+            height: 90px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Comfortaa', cursive;
+            font-size: 36px;
+            font-weight: 900;
+            color: #1e293b;
+            cursor: pointer;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.25);
+            transition: all 0.1s ease;
+        }
+
+        .answer-stone:hover {
+            transform: translateY(-4px);
+            background: #ffffff;
+            box-shadow: 0 14px 25px rgba(0,0,0,0.35);
+        }
+
+        .answer-stone:active {
+            transform: translateY(4px);
+            border-bottom-width: 4px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+
+        .answer-stone.correct {
+            background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%) !important;
+            color: white !important;
+            border-color: #86efac !important;
+            border-bottom-color: #15803d !important;
+            box-shadow: 0 10px 25px rgba(34,197,94,0.4) !important;
+        }
+
+        .answer-stone.wrong {
+            background: linear-gradient(135deg, #f87171 0%, #ef4444 100%) !important;
+            color: white !important;
+            border-color: #fca5a5 !important;
+            border-bottom-color: #b91c1c !important;
+            box-shadow: 0 10px 25px rgba(239,68,68,0.4) !important;
+        }
+
+        .feedback-banner {
+            position: absolute;
+            top: 28%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(10px);
+            padding: 20px 45px;
+            border-radius: 40px;
+            font-size: 24px;
+            font-weight: 900;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.4);
+            border: 5px solid #fde047;
+            z-index: 50;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            pointer-events: none;
+            text-align: center;
+            max-width: 650px;
+        }
+        .feedback-banner.show { transform: translate(-50%, -50%) scale(1); }
+        .feedback-banner.success { color: #15803d; border-color: #4ade80; }
+        .feedback-banner.error { color: #b91c1c; border-color: #f87171; }
+
+        #victory-screen {
+            background: linear-gradient(135deg, #7c3aed 0%, #db2777 100%);
+            text-align: center;
+        }
+
+        .victory-card {
+            background: rgba(255, 255, 255, 0.96);
+            border-radius: 36px;
+            padding: 40px 50px;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.5);
+            border: 6px solid #fde047;
+            max-width: 650px;
+            width: 90%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 5;
+        }
+
+        .victory-title {
+            font-family: 'Comfortaa', cursive;
+            font-size: 32px;
+            color: #d97706;
+            font-weight: 900;
+            margin-bottom: 8px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 14px 24px;
+            width: 100%;
+            margin: 20px 0;
+            background: #fdf4ff;
+            padding: 20px;
+            border-radius: 24px;
+            border: 2px solid #f5d0fe;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 16px;
+            color: #701a75;
+            font-weight: 800;
+        }
+
+        .stat-value { font-weight: 900; color: #a21caf; font-size: 18px; }
+
+        #sound-toggle {
+            position: absolute;
+            top: 18px;
+            right: 80px;
+            background: rgba(255,255,255,0.9);
+            border: 3px solid #3b82f6;
+            border-radius: 50%;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            z-index: 100;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.25);
+        }
+
+        #teacher-btn {
+            position: absolute;
+            top: 18px;
+            right: 20px;
+            background: rgba(255,255,255,0.9);
+            border: 3px solid #ff4757;
+            border-radius: 50%;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            z-index: 100;
+            font-size: 24px;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.25);
+        }
+
+        .back-map-btn {
+            position: absolute;
+            top: 18px;
+            left: 20px;
+            background: rgba(255,255,255,0.2);
+            border: 2px solid rgba(255,255,255,0.4);
+            color: #fff;
+            padding: 8px 18px;
+            border-radius: 20px;
+            font-weight: 900;
+            cursor: pointer;
+            z-index: 60;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+        .modal-overlay.active { display: flex; }
+
+        .teacher-dashboard-box {
+            max-width: 900px;
+            width: 95%;
+            max-height: 85vh;
+            background: #ffffff;
+            border-radius: 36px;
+            padding: 30px;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.6);
+            border: 6px solid #3b82f6;
+            display: flex;
+            flex-direction: column;
+            text-align: left;
+        }
+        .teacher-table-wrap { flex-grow: 1; overflow-y: auto; max-height: 50vh; margin-top: 16px; }
+        .teacher-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        .teacher-table th { background: #3b82f6; color: white; padding: 12px 10px; text-align: center; }
+        .teacher-table td { padding: 10px; text-align: center; border-bottom: 2px solid #f1f5f9; font-weight: 800; color: #334155; }
+
+        @keyframes bearIdle {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+        .bear-idle { animation: bearIdle 2s ease-in-out infinite; }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <canvas id="fx-canvas"></canvas>
+    
+    <div id="sound-toggle" onclick="game.toggleSound()" title="Bật/Tắt âm thanh">
+        <svg id="sound-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+            <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+        </svg>
+    </div>
+
+    <div id="teacher-btn" onclick="game.promptTeacherLogin()" title="Dành cho Giáo viên">✋</div>
+
+    <!-- START SCREEN -->
+    <div id="start-screen" class="screen">
+        <div class="hero-title-box">
+            <h1 class="main-title">ĐẠI CHIẾN 11 & 12</h1>
+            <div class="sub-title">TRỪ ĐI MỘT SỐ - VƯƠNG QUỐC PHÉP TRỪ</div>
+        </div>
+
+        <div style="margin-bottom: 15px;">
+            <div style="width: 150px; height: 180px; margin: auto;" class="bear-idle">
+                <svg viewBox="0 0 200 250" width="100%" height="100%">
+                    <rect x="70" y="110" width="60" height="70" rx="15" fill="#f59e0b" stroke="#b45309" stroke-width="4"/>
+                    <ellipse cx="100" cy="140" rx="45" ry="50" fill="#d97706" stroke="#b45309" stroke-width="4"/>
+                    <path d="M60 120 Q100 130 140 120 L145 175 Q100 185 55 175 Z" fill="#3b82f6" stroke="#1d4ed8" stroke-width="4"/>
+                    <circle cx="100" cy="145" r="10" fill="#fde047" stroke="#b45309" stroke-width="3"/>
+                    <text x="100" y="150" font-size="12" font-weight="bold" fill="#78350f" text-anchor="middle">12</text>
+                    <circle cx="100" cy="80" r="42" fill="#d97706" stroke="#b45309" stroke-width="4"/>
+                    <circle cx="70" cy="50" r="15" fill="#d97706" stroke="#b45309" stroke-width="4"/>
+                    <circle cx="130" cy="50" r="15" fill="#d97706" stroke="#b45309" stroke-width="4"/>
+                    <circle cx="85" cy="75" r="5" fill="#1e293b"/>
+                    <circle cx="115" cy="75" r="5" fill="#1e293b"/>
+                    <ellipse cx="100" cy="90" rx="16" ry="12" fill="#fef3c7" stroke="#b45309" stroke-width="3"/>
+                    <ellipse cx="100" cy="86" rx="7" ry="5" fill="#1e293b"/>
+                </svg>
+            </div>
+        </div>
+
+        <div class="input-group-box">
+            <div class="input-name-box">
+                <input type="text" id="player-name-input" placeholder="Họ và tên học sinh...">
+            </div>
+            <div class="input-name-box">
+                <input type="text" id="player-class-input" placeholder="Lớp (Ví dụ: 2.6)">
+            </div>
+        </div>
+
+        <button class="game-btn" onclick="game.startAdventure()">BẮT ĐẦU PHIÊU LƯU</button>
+    </div>
+
+    <!-- MAP SCREEN -->
+    <div id="map-screen" class="screen hidden">
+        <div class="map-content">
+            <h2 style="font-family:'Comfortaa', cursive; color: #fde047; font-size: 28px; text-shadow: 2px 2px 0px #0369a1; margin-top: 10px;">CHỌN KHU VỰC PHIÊU LƯU</h2>
+            
+            <div class="zone-cards-container">
+                <div class="zone-card" id="card-zone-1" onclick="game.selectZone(1)">
+                    <div class="zone-badge">Khu Vực 1</div>
+                    <div class="zone-title">RỪNG SỐ 11</div>
+                    <div class="zone-desc">Khám phá khu rừng phép thuật và luyện tập bảng trừ 11!</div>
+                    <button class="game-btn" style="padding: 10px 24px; font-size: 16px;">VÀO RỪNG</button>
+                </div>
+
+                <div class="zone-card locked" id="card-zone-2" onclick="game.selectZone(2)">
+                    <div class="zone-badge" style="background: var(--secondary);">Khu Vực 2</div>
+                    <div class="zone-title">THÀNH PHỐ SỐ 12 🔒</div>
+                    <div class="zone-desc">Chinh phục thành phố fantasy bảng trừ 12 đầy màu sắc!</div>
+                    <button class="game-btn" id="btn-zone-2" style="padding: 10px 24px; font-size: 16px; background: linear-gradient(135deg, #94a3b8, #64748b); border-color:#cbd5e1; border-bottom-color:#475569; color:#fff;" disabled>ĐANG KHÓA</button>
+                </div>
+
+                <div class="zone-card locked" id="card-zone-3" onclick="game.selectZone(3)">
+                    <div class="zone-badge" style="background: var(--purple);">Khu Vực 3</div>
+                    <div class="zone-title">LÂU ĐÀI CAO THỦ 🔒</div>
+                    <div class="zone-desc">Thử thách cuối cùng tìm ẩn số và tổng hợp phép tính!</div>
+                    <button class="game-btn" id="btn-zone-3" style="padding: 10px 24px; font-size: 16px; background: linear-gradient(135deg, #94a3b8, #64748b); border-color:#cbd5e1; border-bottom-color:#475569; color:#fff;" disabled>ĐANG KHÓA</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PLAY SCREEN -->
+    <div id="play-screen" class="screen hidden">
+        <button class="back-map-btn" onclick="game.returnToMap()">← Bản Đồ</button>
+
+        <div class="battle-layout">
+            <div class="battle-header">
+                <div class="level-indicator" id="hud-zone-title">KHU VỰC 1: RỪNG SỐ 11</div>
+                <div style="display:flex; gap: 15px;">
+                    <div class="hud-item">⭐ Điểm: <span id="score-val">0</span></div>
+                    <div class="hud-item">❤️ Tim: <span id="hearts-val">3</span></div>
+                </div>
+            </div>
+
+            <div class="question-box">
+                <div class="story-prompt" id="story-prompt-text">Gấu Mathi đến một cây cầu gỗ cổ kính...</div>
+                <div class="question-text" id="question-text-val">11 - 4 = ?</div>
+            </div>
+
+            <div class="battle-arena">
+                <div class="character-stage">
+                    <div style="width: 160px; height: 200px;" class="bear-idle">
+                        <svg viewBox="0 0 200 250" width="100%" height="100%">
+                            <rect x="70" y="110" width="60" height="70" rx="15" fill="#f59e0b" stroke="#b45309" stroke-width="4"/>
+                            <ellipse cx="100" cy="140" rx="45" ry="50" fill="#d97706" stroke="#b45309" stroke-width="4"/>
+                            <path d="M60 120 Q100 130 140 120 L145 175 Q100 185 55 175 Z" fill="#3b82f6" stroke="#1d4ed8" stroke-width="4"/>
+                            <circle cx="100" cy="145" r="10" fill="#fde047" stroke="#b45309" stroke-width="3"/>
+                            <text x="100" y="150" font-size="12" font-weight="bold" fill="#78350f" text-anchor="middle">12</text>
+                            <circle cx="100" cy="80" r="42" fill="#d97706" stroke="#b45309" stroke-width="4"/>
+                            <circle cx="70" cy="50" r="15" fill="#d97706" stroke="#b45309" stroke-width="4"/>
+                            <circle cx="130" cy="50" r="15" fill="#d97706" stroke="#b45309" stroke-width="4"/>
+                            <circle cx="85" cy="75" r="5" fill="#1e293b"/>
+                            <circle cx="115" cy="75" r="5" fill="#1e293b"/>
+                            <ellipse cx="100" cy="90" rx="16" ry="12" fill="#fef3c7" stroke="#b45309" stroke-width="3"/>
+                            <ellipse cx="100" cy="86" rx="7" ry="5" fill="#1e293b"/>
+                        </svg>
+                    </div>
+                </div>
+
+                <div class="answers-grid" id="answers-container"></div>
+            </div>
+        </div>
+
+        <div class="feedback-banner" id="feedback-banner">CHÍNH XÁC!</div>
+    </div>
+
+    <!-- VICTORY SCREEN -->
+    <div id="victory-screen" class="screen hidden">
+        <div class="victory-card">
+            <h2 class="victory-title" id="victory-main-title">HOÀN THÀNH KHU VỰC!</h2>
+            <div style="font-size: 16px; color: #0d9488; font-weight: 800; margin-bottom: 10px;" id="victory-congrats">Chúc mừng học sinh xuất sắc!</div>
+            
+            <div class="stats-grid">
+                <div class="stat-item"><span>Học sinh:</span> <span class="stat-value" id="v-name">--</span></div>
+                <div class="stat-item"><span>Tổng điểm:</span> <span class="stat-value" id="v-score">0</span></div>
+                <div class="stat-item"><span>Câu đúng:</span> <span class="stat-value" id="v-correct">0 / 0</span></div>
+                <div class="stat-item"><span>Combo cao nhất:</span> <span class="stat-value" id="v-combo">0</span></div>
+            </div>
+
+            <div id="cloud-sync-status" style="font-size: 13px; font-weight: 900; color: #2563eb; margin-bottom: 14px;"></div>
+
+            <div style="display: flex; gap: 20px; margin-top: 5px;">
+                <button class="game-btn" id="btn-next-action" style="font-size: 16px; padding: 12px 24px;" onclick="game.proceedAfterZoneClear()">TIẾP TỤC KHU VỰC TIẾP</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL QUẢN TRỊ GIÁO VIÊN -->
+    <div class="modal-overlay" id="modal-teacher">
+        <div class="teacher-dashboard-box">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #f1f5f9; padding-bottom: 14px;">
+                <h3 style="margin:0; font-family:'Comfortaa', cursive; color:#1e40af; font-size:20px;">📊 BẢNG KẾT QUẢ HỌC SINH (GOOGLE SHEETS)</h3>
+                <button onclick="game.closeTeacherModal()" style="background:#ef4444; color:white; border:none; width:36px; height:36px; border-radius:50%; font-weight:900; font-size:16px; cursor:pointer;">✕</button>
+            </div>
+
+            <div style="display: flex; gap: 12px; align-items: center; margin-top: 16px; background:#f8fafc; padding:12px; border-radius:16px; flex-wrap: wrap;">
+                <span style="font-weight:900; color:#475569;">🔍 Lọc lớp:</span>
+                <select id="teacher-class-filter" style="padding:8px 14px; border-radius:10px; border:2px solid #cbd5e1; font-weight:900; outline:none;" onchange="game.renderTeacherTable()">
+                    <option value="ALL">-- Tất cả các lớp --</option>
+                </select>
+                <button onclick="game.fetchTeacherCloudRecords()" style="background:#3b82f6; color:white; border:none; padding:8px 16px; border-radius:10px; font-weight:900; cursor:pointer;">🔄 Tải lại</button>
+                <button onclick="game.clearAllRecords()" style="background:#ef4444; color:white; border:none; padding:8px 16px; border-radius:10px; font-weight:900; cursor:pointer; margin-left:auto;">🗑️ Xóa tất cả</button>
+            </div>
+
+            <div class="teacher-table-wrap">
+                <table class="teacher-table">
+                    <thead>
+                        <tr>
+                            <th>STT</th>
+                            <th>Thời gian</th>
+                            <th>Tên Game</th>
+                            <th>Học sinh</th>
+                            <th>Lớp</th>
+                            <th>Thành tích</th>
+                            <th>Xóa</th>
+                        </tr>
+                    </thead>
+                    <tbody id="teacher-table-body">
+                        <tr><td colspan="7" style="color:#94a3b8; padding:20px;">Đang đồng bộ dữ liệu...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const GOOGLE_SHEET_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbxUUIeu3SStbd6TDsQ8JuXo2ZR__-yAXr4IgjyMyvc5ndLXn1Wiq7WaC5NJH-a50RW0/exec"; 
+    const GAME_TITLE = "Đại Chiến 11 & 12 - Vương Quốc Phép Trừ";
+
+    class SoundManager {
+        constructor() {
+            this.ctx = null;
+            this.enabled = true;
+        }
+
+        init() {
+            if (!this.ctx) {
+                const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                this.ctx = new AudioCtx();
+            }
+        }
+
+        playClick() {
+            if (!this.enabled) return;
+            try {
+                this.init();
+                if (this.ctx.state === 'suspended') this.ctx.resume();
+                let osc = this.ctx.createOscillator();
+                let gain = this.ctx.createGain();
+                osc.frequency.setValueAtTime(400, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(700, this.ctx.currentTime + 0.08);
+                gain.gain.setValueAtTime(0.1, this.ctx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.001, this.ctx.currentTime + 0.08);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.08);
+            } catch(e) {}
+        }
+
+        playCorrect() {
+            if (!this.enabled) return;
+            try {
+                this.init();
+                if (this.ctx.state === 'suspended') this.ctx.resume();
+                let now = this.ctx.currentTime;
+                [523.25, 659.25, 783.99, 1046.50].forEach((freq, i) => {
+                    let osc = this.ctx.createOscillator();
+                    let gain = this.ctx.createGain();
+                    osc.frequency.setValueAtTime(freq, now + i * 0.07);
+                    gain.gain.setValueAtTime(0.15, now + i * 0.07);
+                    gain.gain.linearRampToValueAtTime(0.001, now + i * 0.07 + 0.12);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(now + i * 0.07);
+                    osc.stop(now + i * 0.07 + 0.12);
+                });
+            } catch(e) {}
+        }
+
+        playWrong() {
+            if (!this.enabled) return;
+            try {
+                this.init();
+                if (this.ctx.state === 'suspended') this.ctx.resume();
+                let now = this.ctx.currentTime;
+                let osc = this.ctx.createOscillator();
+                let gain = this.ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(180, now);
+                osc.frequency.linearRampToValueAtTime(100, now + 0.2);
+                gain.gain.setValueAtTime(0.15, now);
+                gain.gain.linearRampToValueAtTime(0.001, now + 0.2);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.2);
+            } catch(e) {}
+        }
+
+        playVictory() {
+            if (!this.enabled) return;
+            try {
+                this.init();
+                if (this.ctx.state === 'suspended') this.ctx.resume();
+                let now = this.ctx.currentTime;
+                [440, 554.37, 659.25, 880].forEach((freq, i) => {
+                    let osc = this.ctx.createOscillator();
+                    let gain = this.ctx.createGain();
+                    osc.frequency.setValueAtTime(freq, now + i * 0.1);
+                    gain.gain.setValueAtTime(0.2, now + i * 0.1);
+                    gain.gain.linearRampToValueAtTime(0.001, now + i * 0.1 + 0.2);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(now + i * 0.1);
+                    osc.stop(now + i * 0.1 + 0.2);
+                });
+            } catch(e) {}
+        }
+    }
+
+    class ParticleEngine {
+        constructor() {
+            this.canvas = document.getElementById('fx-canvas');
+            this.ctx = this.canvas.getContext('2d');
+            this.particles = [];
+            this.resize();
+            window.addEventListener('resize', () => this.resize());
+            this.loop();
+        }
+
+        resize() {
+            this.canvas.width = window.innerWidth;
+            this.canvas.height = window.innerHeight;
+        }
+
+        spawnSparkles(x, y) {
+            for (let i = 0; i < 25; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const speed = Math.random() * 6 + 2;
+                this.particles.push({
+                    x: x, y: y,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    size: Math.random() * 6 + 3,
+                    color: '#fde047',
+                    life: 1,
+                    decay: Math.random() * 0.04 + 0.02
+                });
+            }
+        }
+
+        loop() {
+            this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+            for (let i = this.particles.length - 1; i >= 0; i--) {
+                let p = this.particles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.life -= p.decay;
+                if (p.life <= 0) {
+                    this.particles.splice(i, 1);
+                    continue;
+                }
+                this.ctx.save();
+                this.ctx.globalAlpha = p.life;
+                this.ctx.fillStyle = p.color;
+                this.ctx.fillRect(p.x, p.y, p.size, p.size);
+                this.ctx.restore();
+            }
+            requestAnimationFrame(() => this.loop());
+        }
+    }
+
+    class Game {
+        constructor() {
+            this.sound = new SoundManager();
+            this.fx = new ParticleEngine();
+            this.playerName = "";
+            this.playerClass = "";
+            this.score = 0;
+            this.hearts = 3;
+            this.isScoringActive = true; 
+            this.currentZone = 1;
+            this.unlockedZone = 1; // Quản lý tiến trình mở khóa vòng
+            this.questions = [];
+            this.currentQuestionIndex = 0;
+            this.correctCount = 0;
+            this.combo = 0;
+            this.maxCombo = 0;
+            this.isAnswerLocked = false;
+            this.teacherCachedRecords = [];
+            this.hasSubmittedCloud = false;
+        }
+
+        toggleSound() {
+            this.sound.enabled = !this.sound.enabled;
+            const icon = document.getElementById('sound-icon');
+            if (this.sound.enabled) {
+                icon.innerHTML = '<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>';
+            } else {
+                icon.innerHTML = '<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line>';
+            }
+            this.sound.playClick();
+        }
+
+        startAdventure() {
+            this.sound.playClick();
+            let nameInput = document.getElementById('player-name-input').value.trim();
+            let classInput = document.getElementById('player-class-input').value.trim();
+
+            if (!nameInput || !classInput) {
+                alert("Bé vui lòng nhập đầy đủ Họ và tên và Lớp nhé!");
+                return;
+            }
+
+            this.playerName = nameInput;
+            this.playerClass = String(classInput);
+            this.score = 0;
+            this.unlockedZone = 1;
+            this.hasSubmittedCloud = false;
+            
+            document.getElementById('start-screen').classList.add('hidden');
+            this.updateMapUI();
+            document.getElementById('map-screen').classList.remove('hidden');
+        }
+
+        updateMapUI() {
+            // Cập nhật trạng thái mở khóa các card trên bản đồ
+            for (let i = 2; i <= 3; i++) {
+                let card = document.getElementById(`card-zone-${i}`);
+                let btn = document.getElementById(`btn-zone-${i}`);
+                let title = card.querySelector('.zone-title');
+
+                if (i <= this.unlockedZone) {
+                    card.classList.remove('locked');
+                    btn.disabled = false;
+                    btn.innerText = i === 2 ? "VÀO THÀNH PHỐ" : "VÀO LÂU ĐÀI";
+                    btn.style.background = i === 2 ? "linear-gradient(135deg, #14b8a6, #0d9488)" : "linear-gradient(135deg, #c084fc, #9333ea)";
+                    title.innerText = i === 2 ? "THÀNH PHỐ SỐ 12" : "LÂU ĐÀI CAO THỦ";
+                } else {
+                    card.classList.add('locked');
+                    btn.disabled = true;
+                    btn.innerText = "ĐANG KHÓA";
+                    btn.style.background = "linear-gradient(135deg, #94a3b8, #64748b)";
+                    title.innerText = (i === 2 ? "THÀNH PHỐ SỐ 12" : "LÂU ĐÀI CAO THỦ") + " 🔒";
+                }
+            }
+        }
+
+        returnToMap() {
+            this.sound.playClick();
+            this.updateMapUI();
+            document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
+            document.getElementById('map-screen').classList.remove('hidden');
+        }
+
+        selectZone(zone) {
+            if (zone > this.unlockedZone) {
+                alert("Khu vực này đang bị khóa! Bé cần hoàn thành khu vực trước đó trước nhé.");
+                return;
+            }
+            this.sound.playClick();
+            this.currentZone = zone;
+            this.currentQuestionIndex = 0;
+            this.hearts = 3;
+            this.isScoringActive = true;
+            this.generateQuestionsForZone(zone);
+            
+            document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
+            document.getElementById('play-screen').classList.remove('hidden');
+            
+            const zoneTitles = {
+                1: "KHU VỰC 1: RỪNG SỐ 11",
+                2: "KHU VỰC 2: THÀNH PHỐ SỐ 12",
+                3: "KHU VỰC 3: LÂU ĐÀI CAO THỦ"
+            };
+            document.getElementById('hud-zone-title').innerText = zoneTitles[zone];
+            this.loadQuestion();
+        }
+
+        generateQuestionsForZone(zone) {
+            this.questions = [];
+            let count = zone === 1 ? 8 : (zone === 2 ? 10 : 12);
+            let baseNum = zone === 1 ? 11 : (zone === 2 ? 12 : 11);
+            
+            const stories = [
+                "Gấu Mathi đến một cây cầu gỗ cổ kính...",
+                "Gấu Mathi gặp một dòng suối đá phép thuật...",
+                "Một cánh cửa cổ chặn đường đi của Gấu Mathi...",
+                "Gấu Mathi đứng trước bức tường lâu đài huyền bí..."
+            ];
+
+            for (let i = 0; i < count; i++) {
+                let sub = Math.floor(Math.random() * 8) + 2; 
+                let currentBase = zone === 3 ? (i % 2 === 0 ? 11 : 12) : baseNum;
+                let isMissingVariant = (zone === 3 && i >= 10);
+                
+                let qText, correctAns, fullEquation;
+                if (isMissingVariant) {
+                    let res = currentBase - sub;
+                    qText = `${currentBase} - ? = ${res}`;
+                    correctAns = sub;
+                    fullEquation = `${currentBase} - ${sub} = ${res}`;
+                } else {
+                    qText = `${currentBase} - ${sub} = ?`;
+                    correctAns = currentBase - sub;
+                    fullEquation = `${currentBase} - ${sub} = ${correctAns}`;
+                }
+
+                let answers = [correctAns];
+                while (answers.length < 4) {
+                    let wrong = Math.floor(Math.random() * 9) + 1;
+                    if (!answers.includes(wrong)) answers.push(wrong);
+                }
+                answers.sort(() => Math.random() - 0.5);
+
+                this.questions.push({
+                    text: qText,
+                    correct: correctAns,
+                    answers: answers,
+                    equation: fullEquation,
+                    story: stories[i % stories.length]
+                });
+            }
+        }
+
+        loadQuestion() {
+            if (this.currentQuestionIndex >= this.questions.length) {
+                this.triggerZoneComplete();
+                return;
+            }
+
+            this.isAnswerLocked = false;
+            let q = this.questions[this.currentQuestionIndex];
+            document.getElementById('story-prompt-text').innerText = q.story;
+            document.getElementById('question-text-val').innerText = q.text;
+            document.getElementById('hearts-val').innerText = this.hearts;
+            document.getElementById('score-val').innerText = this.score;
+
+            const container = document.getElementById('answers-container');
+            container.innerHTML = '';
+
+            q.answers.forEach(ans => {
+                const stone = document.createElement('div');
+                stone.className = 'answer-stone';
+                stone.innerText = ans;
+                stone.onclick = () => this.handleAnswer(ans, stone);
+                container.appendChild(stone);
+            });
+        }
+
+        handleAnswer(selected, element) {
+            if (this.isAnswerLocked) return;
+            this.isAnswerLocked = true;
+
+            let q = this.questions[this.currentQuestionIndex];
+            const banner = document.getElementById('feedback-banner');
+
+            if (selected === q.correct) {
+                this.sound.playCorrect();
+                element.classList.add('correct');
+                
+                if (this.isScoringActive) {
+                    this.score += 150 + (this.combo * 25);
+                    this.correctCount++;
+                    this.combo++;
+                    if (this.combo > this.maxCombo) this.maxCombo = this.combo;
+                }
+
+                const rect = element.getBoundingClientRect();
+                this.fx.spawnSparkles(rect.left + rect.width/2, rect.top + rect.height/2);
+
+                banner.innerText = "CHÍNH XÁC!";
+                banner.className = "feedback-banner success show";
+
+                setTimeout(() => {
+                    banner.className = "feedback-banner";
+                    this.currentQuestionIndex++;
+                    this.loadQuestion();
+                }, 900);
+            } else {
+                this.sound.playWrong();
+                element.classList.add('wrong');
+                this.combo = 0;
+                this.hearts = Math.max(0, this.hearts - 1);
+                document.getElementById('hearts-val').innerText = this.hearts;
+
+                if (this.hearts === 0) {
+                    this.isScoringActive = false;
+                    banner.innerHTML = `Hết tim rồi! Cùng ôn lại phép tính đúng nhé:<br><b style="color:#d97706; font-size:1.8rem;">${q.equation}</b>`;
+                } else {
+                    banner.innerHTML = `Cố lên! Phép tính đúng là:<br><b style="color:#d97706; font-size:1.8rem;">${q.equation}</b>`;
+                }
+                banner.className = "feedback-banner error show";
+
+                setTimeout(() => {
+                    banner.className = "feedback-banner";
+                    this.isAnswerLocked = false;
+                    element.classList.remove('wrong');
+                    this.currentQuestionIndex++;
+                    this.loadQuestion();
+                }, 2200);
+            }
+        }
+
+        triggerZoneComplete() {
+            this.sound.playVictory();
+
+            document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
+            document.getElementById('victory-screen').classList.remove('hidden');
+
+            const nextBtn = document.getElementById('btn-next-action');
+            const mainTitle = document.getElementById('victory-main-title');
+
+            if (this.currentZone < 3) {
+                mainTitle.innerText = `HOÀN THÀNH KHU VỰC ${this.currentZone}!`;
+                nextBtn.innerText = "MỞ KHÓA KHU VỰC TIẾP THEO 🚀";
+                nextBtn.onclick = () => {
+                    this.unlockedZone = Math.max(this.unlockedZone, this.currentZone + 1);
+                    this.returnToMap();
+                };
+            } else {
+                // Xong vòng 3 là hoàn thành toàn bộ game -> Thoát game / Về trang chủ
+                mainTitle.innerText = "👑 NHÀ VÔ ĐỊCH PHÉP TRỪ!";
+                nextBtn.innerText = "THOÁT GAME / VỀ TRANG CHỦ 🏠";
+                nextBtn.onclick = () => {
+                    alert("Cảm ơn bé đã tham gia Đại Chiến 11 & 12! Chúc bé luôn học giỏi!");
+                    location.reload();
+                };
+                this.submitResultToGoogleSheets(`${this.score} điểm (${this.correctCount}/${this.questions.length} câu)`);
+            }
+
+            document.getElementById('v-name').innerText = `${this.playerName} (Lớp ${this.playerClass})`;
+            document.getElementById('v-score').innerText = this.score;
+            document.getElementById('v-correct').innerText = `${this.correctCount} / ${this.questions.length}`;
+            document.getElementById('v-combo').innerText = this.maxCombo;
+            document.getElementById('victory-congrats').innerText = `Tuyệt vời, ${this.playerName}! Bạn đã vượt qua Khu vực ${this.currentZone}!`;
+        }
+
+        submitResultToGoogleSheets(scoreText) {
+            if (this.hasSubmittedCloud) return;
+            const statusBox = document.getElementById('cloud-sync-status');
+            statusBox.innerText = "⏳ Đang đồng bộ kết quả lên Google Sheets tổng...";
+
+            let now = new Date();
+            let timeStr = `${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')} - ${now.getDate()}/${now.getMonth()+1}/${now.getFullYear()}`;
+
+            let cbName = "cb_sync_" + Date.now();
+            window[cbName] = (res) => {
+                this.hasSubmittedCloud = true;
+                statusBox.style.color = "#16a34a";
+                statusBox.innerText = "✅ Đã lưu kết quả hoàn thành toàn bộ game vào hệ thống của cô!";
+                delete window[cbName];
+            };
+
+            let safeClass = "'" + String(this.playerClass);
+            let url = GOOGLE_SHEET_WEBAPP_URL + 
+                "?time=" + encodeURIComponent(timeStr) +
+                "&gameName=" + encodeURIComponent(GAME_TITLE) +
+                "&name=" + encodeURIComponent(this.playerName) +
+                "&class=" + encodeURIComponent(safeClass) +
+                "&score=" + encodeURIComponent(scoreText) +
+                "&rank=" + encodeURIComponent("Vô địch") +
+                "&callback=" + cbName;
+
+            let script = document.createElement("script");
+            script.src = url;
+            script.onerror = () => {
+                this.hasSubmittedCloud = true;
+                statusBox.style.color = "#16a34a";
+                statusBox.innerText = "✅ Đã gửi kết quả thành công!";
+            };
+            document.body.appendChild(script);
+        }
+
+        // --- QUẢN TRỊ GIÁO VIÊN (MẬT KHẨU: 12345) ---
+        promptTeacherLogin() {
+            this.sound.playClick();
+            let pwd = prompt("Nhập mật mã dành cho Giáo viên:");
+            if (pwd === "12345") {
+                this.openTeacherModal();
+            } else if (pwd !== null) {
+                alert("Mật mã không đúng!");
+            }
+        }
+
+        openTeacherModal() {
+            document.getElementById('modal-teacher').classList.add('active');
+            this.fetchTeacherCloudRecords();
+        }
+
+        closeTeacherModal() {
+            document.getElementById('modal-teacher').classList.remove('active');
+        }
+
+        fetchTeacherCloudRecords() {
+            const tbody = document.getElementById('teacher-table-body');
+            tbody.innerHTML = `<tr><td colspan="7" style="color:#2563eb; padding:20px;">⏳ Đang đồng bộ dữ liệu từ Google Sheets...</td></tr>`;
+
+            let cbName = "cb_read_" + Date.now();
+            window[cbName] = (data) => {
+                if (Array.isArray(data)) this.teacherCachedRecords = data;
+                else this.teacherCachedRecords = [];
+                this.updateTeacherClassDropdown();
+                this.renderTeacherTable();
+                delete window[cbName];
+            };
+
+            let script = document.createElement("script");
+            script.src = GOOGLE_SHEET_WEBAPP_URL + "?action=read&callback=" + cbName;
+            script.onerror = () => {
+                tbody.innerHTML = `<tr><td colspan="7" style="color:#dc2626; padding:20px;">❌ Lỗi kết nối Google Sheets!</td></tr>`;
+            };
+            document.body.appendChild(script);
+        }
+
+        updateTeacherClassDropdown() {
+            const select = document.getElementById('teacher-class-filter');
+            let currentVal = select.value;
+            let classes = new Set(["2.1", "2.2", "2.3", "2.4", "2.5", "2.6", "2.7", "2.8", "2.9", "2.10", "2.11", "2.12"]);
+
+            this.teacherCachedRecords.forEach(r => {
+                if (r.class) {
+                    let clean = String(r.class).replace(/['']/g, '').replace(/lớp/i, '').replace(/\s+/g, '').trim();
+                    if (clean) classes.add(clean);
+                }
+            });
+
+            select.innerHTML = `<option value="ALL">-- Tất cả các lớp --</option>`;
+            Array.from(classes).sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' })).forEach(c => {
+                let opt = document.createElement('option');
+                opt.value = c;
+                opt.innerText = `Lớp ${c}`;
+                select.appendChild(opt);
+            });
+            if (classes.has(currentVal)) select.value = currentVal;
+        }
+
+        renderTeacherTable() {
+            const classFilter = document.getElementById('teacher-class-filter').value;
+            const tbody = document.getElementById('teacher-table-body');
+            tbody.innerHTML = '';
+
+            let list = [...this.teacherCachedRecords];
+            if (classFilter !== "ALL") {
+                let cleanFilter = String(classFilter).replace(/['']/g, '').replace(/lớp/i, '').replace(/\s+/g, '').trim().toUpperCase();
+                list = list.filter(r => {
+                    let studentCls = String(r.class || '').replace(/['']/g, '').replace(/lớp/i, '').replace(/\s+/g, '').trim().toUpperCase();
+                    return studentCls === cleanFilter;
+                });
+            }
+
+            if (list.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="color:#94a3b8; padding:20px;">Chưa có học sinh nào nộp bài.</td></tr>';
+                return;
+            }
+
+            list.forEach((s, idx) => {
+                let studentName = s.name || '--';
+                let studentClass = String(s.class || '--').replace(/['']/g, '').trim();
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${idx + 1}</td>
+                    <td>${s.timestamp || '--'}</td>
+                    <td><strong style="color:#2563eb;">${s.gameName || 'Trò chơi'}</strong></td>
+                    <td>${studentName}</td>
+                    <td>${studentClass}</td>
+                    <td>${s.score || '--'}</td>
+                    <td><button style="background:#ef4444; color:white; border:none; padding:6px 10px; border-radius:8px; font-weight:800; cursor:pointer;" onclick="game.deleteSingleRecord('${s.id || idx}')">✕</button></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        deleteSingleRecord(id) {
+            if (confirm("Cô có chắc chắn muốn xóa dòng kết quả này không?")) {
+                const tbody = document.getElementById('teacher-table-body');
+                tbody.innerHTML = `<tr><td colspan="7" style="color:#2563eb; padding:20px;">⏳ Đang xóa và cập nhật...</td></tr>`;
+
+                let cbName = "cb_del_" + Date.now();
+                window[cbName] = (res) => {
+                    alert("Đã xóa thành công!");
+                    this.fetchTeacherCloudRecords();
+                    delete window[cbName];
+                };
+
+                let script = document.createElement("script");
+                script.src = GOOGLE_SHEET_WEBAPP_URL + "?action=delete&id=" + encodeURIComponent(id) + "&callback=" + cbName;
+                script.onerror = () => {
+                    alert("Đã gửi lệnh xóa. Cô vui lòng bấm Tải lại để cập nhật bảng nhé ạ!");
+                    this.fetchTeacherCloudRecords();
+                };
+                document.body.appendChild(script);
+            }
+        }
+
+        clearAllRecords() {
+            if (confirm("⚠️ CÔ CÓ CHẮC CHẮN MUỐN XÓA TẤT CẢ KẾT QUẢ CỦA HỌC SINH KHÔNG?")) {
+                const tbody = document.getElementById('teacher-table-body');
+                tbody.innerHTML = `<tr><td colspan="7" style="color:#ef4444; padding:20px;">⏳ Đang xóa toàn bộ dữ liệu...</td></tr>`;
+
+                let cbName = "cb_clear_" + Date.now();
+                window[cbName] = (res) => {
+                    alert("Đã xóa sạch toàn bộ dữ liệu thành công!");
+                    this.fetchTeacherCloudRecords();
+                    delete window[cbName];
+                };
+
+                let script = document.createElement("script");
+                script.src = GOOGLE_SHEET_WEBAPP_URL + "?action=clear&callback=" + cbName;
+                script.onerror = () => {
+                    alert("Đã gửi lệnh xóa tất cả. Cô vui lòng tải lại bảng quản trị!");
+                    this.fetchTeacherCloudRecords();
+                };
+                document.body.appendChild(script);
+            }
+        }
+    }
+
+    const game = new Game();
+</script>
+</body>
+</html>
